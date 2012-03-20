@@ -54,8 +54,8 @@ DEPS_$(d)	:= $(TGTS_$(d):%=%.d)
 TAR_SRC		:= $(TAR_SRC) $(CORE_SRC_$(d)) $(CORE_HDR_$(d)) $(d)/rules.mk
 
 CLEAN		:= $(CLEAN) $(CORE_OBJS_$(d)) $(CORE_DEPS_$(d)) \
-                   $(TGTS_$(d)) $(DEPS_$(d))
-VERYCLEAN	:= $(VERYCLEAN) $(d)/*~
+                   $(DEPS_$(d))
+VERYCLEAN	:= $(VERYCLEAN) $(TGTS_$(d)) $(d)/*~
 
 TAG_FILES	:= $(TAG_FILES) $(CORE_SRC_$(d)) $(CORE_SRC_$(d)) $(CORE_HDR_$(d))
 
@@ -74,8 +74,11 @@ TGT_LIB		:= $(TGT_LIB) verbose_$(d) $(TGTS_$(d))
 # Force remake if rules are changed
 #$(CORE_OBJS_$(d)):	$(d)/rules.mk
 
+ifeq ($(PLATFORM), Darwin)
 $(CORE_OBJS_$(d)): 	CF_TGT := -I$(d) -I/opt/local/include -Wno-deprecated
-
+else
+$(CORE_OBJS_$(d)): 	CF_TGT := -I$(d)  -Wno-deprecated
+endif
 # Local libs
 # Force remake if rules are changed
 #$(TGTS_$(d)): $(d)/rules.mk
