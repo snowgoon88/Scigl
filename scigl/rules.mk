@@ -74,8 +74,11 @@ TGT_LIB		:= $(TGT_LIB) verbose_$(d) $(TGTS_$(d))
 # Force remake if rules are changed
 #$(CORE_OBJS_$(d)):	$(d)/rules.mk
 
+ifeq ($(PLATFORM), Darwin)
 $(CORE_OBJS_$(d)): 	CF_TGT := -I$(d) -I/opt/local/include -Wno-deprecated
-
+else
+$(CORE_OBJS_$(d)): 	CF_TGT := -I$(d)  -Wno-deprecated
+endif
 # Local libs
 # Force remake if rules are changed
 #$(TGTS_$(d)): $(d)/rules.mk

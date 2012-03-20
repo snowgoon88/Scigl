@@ -73,6 +73,7 @@ VERYCLEAN	:= $(VERYCLEAN) $(d)/*~
 # Force remake if rules are changed
 #$(TGTS_$(d)): $(d)/rules.mk
 
+ifeq ($(PLATFORM), Darwin)
 $(TGTS_$(d)):	CF_TGT := -Iscigl -I/opt/local/include \
                           -I$(GLFW_HOME)/include
 
@@ -86,7 +87,16 @@ $(TGTS_$(d)):	LF_TGT := -framework OpenGL -framework GLUT -framework Cocoa \
 
 $(TGTS_$(d)):	LL_TGT := $(S_LL_INET) scigl/libscigl.a \
                           $(GLFW_HOME)/lib/cocoa/libglfw.a
+else
+$(TGTS_$(d)):	CF_TGT := -Iscigl \
 
+$(TGTS_$(d)):	LF_TGT := 
+# 	                  -lgthread-2.0 -lboost_thread
+
+$(TGTS_$(d)):	LL_TGT := -lGL -lGLU -lGLEW \
+                          $(S_LL_INET) scigl/libscigl.a \
+                          -lglfw 
+endif
 
 #$(CORE_OBJS_$(d)):	CF_TGT := -I. -I$(d) $(shell pkg-config --cflags gtkmm-2.4)
 #$(OBJS_$(d)):	LF_TGT := -lgsl -lgslcblas -lm 

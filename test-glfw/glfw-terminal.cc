@@ -25,6 +25,7 @@
 #include <GL/glfw.h>
 
 #include <iostream>
+#include <stdio.h>
 
 #include <cstdlib>
 #include "terminal.h"
