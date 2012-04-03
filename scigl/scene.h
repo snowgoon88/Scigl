@@ -87,6 +87,15 @@ public:
      * -# Widgets with a positive z
      */
     virtual void render (void);
+    /**
+     * Render the scene by passing the view orientation to sub-objects.
+     *
+     * Rendering is done in the following order:
+     * -# Widgets with a negative z
+     * -# Objects
+     * -# Widgets with a positive z
+     */
+    virtual void render_with_view_orientation (void);
 
     /**
      * Save the scene as a ppm image into a file
@@ -261,6 +270,14 @@ public:
      * @return orientation vector (x and z)
      */
     virtual Orientation get_orientation (void);
+    
+    /**
+     * Inverse view rotation.
+     * To be used in building GL_MODELVIEW so as to make the 
+     * object face the viewer.
+     * TODO : sure it is usefull ?
+     */
+    virtual void inverse_view_rotation(void);
     //@}
 
 
@@ -325,6 +342,10 @@ protected:
      * Current view vector.
      */
     Vec4f view_;
+    /**
+     * Current rotation of the view model.
+     */
+    float view_rotation_[4][4];
 
     /**
      * Initial view orientation.

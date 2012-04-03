@@ -77,7 +77,7 @@ Scene::update (void)
 }
 
 
-// _______________________________________________________________________ render
+// ______________________________________________________________________ render
 void
 Scene::render (void)
 {
@@ -163,9 +163,8 @@ Scene::render (void)
     glLoadIdentity ();
     glTranslatef (0.0, 0, -8.0f);
     glScalef (zoom_, zoom_, zoom_);
-    float m[4][4];
-    build_rotmatrix (m, view_.data);
-    glMultMatrixf (&m[0][0]);
+    build_rotmatrix (view_rotation_, view_.data);
+    glMultMatrixf (&view_rotation_[0][0]);
 
     // 
     setup();
@@ -183,6 +182,128 @@ Scene::render (void)
     glEnable (GL_LIGHTING);
     for (unsigned int i=0; i<objects_.size(); i++)
         objects_.at(i)->render();
+    //glDisable (GL_LIGHT0);
+    glDisable (GL_LIGHTING);
+
+    // Front widgets
+    glDisable (GL_DEPTH_TEST);
+    for (unsigned int i=0; i<widgets_.size(); i++)
+        if (widgets_.at(i)->get_position().z >= 0)
+            widgets_.at(i)->render();
+
+    glMatrixMode (GL_MODELVIEW);
+    glPopMatrix();
+    glMatrixMode (GL_PROJECTION);
+    glPopMatrix();
+
+    //glDisable (GL_SCISSOR_TEST);
+    glPopAttrib ();
+}
+// ________________________________________________ render_with_view_orientation
+void
+Scene::render_with_view_orientation (void)
+{
+    GLint viewport[4]; 
+    glGetIntegerv (GL_VIEWPORT, viewport);
+    GLint scissor[4]; 
+    glGetIntegerv (GL_SCISSOR_BOX, scissor);
+    GLint scissor_active;
+    GLint mode;
+    glGetIntegerv (GL_RENDER_MODE, &mode);
+    glGetIntegerv (GL_SCISSOR_TEST, &scissor_active);
+    float height = viewport[3];
+
+    render_start ();
+    if (not get_visible()) {
+        render_finish ();
+        return;
+    }    
+    if (mode == GL_RENDER) {
+        Widget::render();
+    }
+    render_finish ();
+
+    glPushAttrib (GL_VIEWPORT_BIT | GL_SCISSOR_BIT);
+
+    int border = 2;
+    if ((get_br_color().alpha * alpha_) == 0) {
+        border = 0;
+    }
+
+    // Set scissor test
+    int x = viewport[0] + int(get_position().x + border/2);
+    int y = viewport[1] + int(height-get_position().y-get_size().y + border/2);
+    int w = int(get_size().x) - border;
+    int h = int(get_size().y) - border;
+    if (scissor_active) {
+        if (x < scissor[0])
+            x = scissor[0];
+        if (y < scissor[1])
+            y = scissor[1];
+        if ((x+w) > (viewport[0]+scissor[2]))
+            w += (viewport[0]+scissor[2]) - (x+w);
+        if ((y+h) > (viewport[1]+scissor[3]))
+            h += (viewport[1]+scissor[3]) - (y+h);
+    }
+    glEnable (GL_SCISSOR_TEST);
+    glScissor (x,y,w,h);
+    // Set viewport
+    glViewport (viewport[0]+int(get_position().x) + border/2,
+                viewport[1]+int(height-get_position().y-get_size().y+border/2),
+                int(get_size().x)-border,
+                int(get_size().y)-border);
+
+
+    // Set modelview 
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glMatrixMode (GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity ();
+
+    if (mode == GL_SELECT) {
+        GLint v[4];
+        glGetIntegerv (GL_VIEWPORT, v);
+        gluPickMatrix (pointer_.x, pointer_.y, 5, 5, v);
+    }
+
+    float aspect = 1.0f;
+    aspect = get_size().x / get_size().y;
+    float aperture = 25.0f;
+    float near = 1.0f;
+    float far = 100.0f;
+    float top = tan(aperture*3.14159/360.0) * near;
+    float bottom = -top;
+    float left = aspect * bottom;
+    float right = aspect * top;
+    if (get_ortho_mode())
+        glOrtho (left, right, bottom, top, near, far);
+    else
+        glFrustum (left, right, bottom, top, near, far);
+
+    glMatrixMode (GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity ();
+    glTranslatef (0.0, 0, -8.0f);
+    glScalef (zoom_, zoom_, zoom_);
+    build_rotmatrix (view_rotation_, view_.data);
+    glMultMatrixf (&view_rotation_[0][0]);
+
+    // 
+    setup();
+
+    // Back widgets
+    glDisable (GL_DEPTH_TEST);
+    for (unsigned int i=0; i<widgets_.size(); i++)
+        if (widgets_.at(i)->get_position().z < 0)
+            widgets_.at(i)->render();
+
+    // Objects
+    glEnable (GL_DEPTH_TEST);
+    //glColor4f(1,1,1,1);
+    //glEnable (GL_LIGHT0);
+    glEnable (GL_LIGHTING);
+    for (unsigned int i=0; i<objects_.size(); i++)
+        objects_.at(i)->render( view_rotation_ );
     //glDisable (GL_LIGHT0);
     glDisable (GL_LIGHTING);
 
@@ -578,6 +699,14 @@ Scene::get_orientation (void)
     orientation_.z = 0;
     orientation_.w = 0;
     return orientation_;
+}
+
+// _______________________________________________________ inverse_view_rotation
+void
+Scene::inverse_view_rotation(void)
+{
+  // As the last transformation applied to an object...
+  glMultTransposeMatrixf (&view_rotation_[0][0]);
 }
 
 

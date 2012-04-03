@@ -93,6 +93,12 @@ public:
      * Render the object
      */
     virtual void render (void);
+    /** 
+     * Render the object with knowledge of the view rotation.
+     * This can allow to render object (text) facing the viewer.
+     * Default : call Object::render();
+     */
+    virtual void render (float view_rotation[4][4]);
 
     /**
      * Update the object

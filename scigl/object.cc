@@ -101,7 +101,11 @@ Object::update (void)
 void
 Object::render (void)
 {}
-
+void
+Object::render (float view_rotation[4][4])
+{
+  render();
+}
 
 // ______________________________________________________________________ select
 bool
