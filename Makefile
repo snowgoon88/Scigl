@@ -22,7 +22,7 @@ endif
 
 ### Build flags for all targets
 #
-CF_ALL          = -g -Wall
+CF_ALL          = -DHAVE_BOOST -g -Wall
 LF_ALL          = 
 LL_ALL          =
 MK_DYN_LIB	= -fPIC -shared

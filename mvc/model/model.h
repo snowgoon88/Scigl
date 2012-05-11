@@ -8,6 +8,7 @@
 
 class Observer;
 #ifdef HAVE_BOOST
+#include <boost/shared_ptr.hpp>
     typedef boost::shared_ptr<class Observer> ObserverPtr;
 #else
     typedef class Observer * ObserverPtr;
